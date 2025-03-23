@@ -5,7 +5,6 @@
 #include <iostream>
 #include "smo.h"
 
-
 namespace detail
 {
     std::mt19937 &get_engine()
@@ -33,7 +32,7 @@ T random_choice(const std::vector<T> &input)
 
 int random_choice(int n)
 {
-    std::uniform_int_distribution<size_t> dist(0, n-1);
+    std::uniform_int_distribution<size_t> dist(0, n - 1);
     return dist(detail::get_engine());
 }
 
@@ -77,8 +76,11 @@ void QPSolver::solve()
 
     int result;
     static double C_ = C;
+    static double tol_ = tol;
 
-    auto non_bound_check = [] (double a){if (a != 0 && a != C_){return true;}return false; };
+    auto non_bound_check = [](double a)
+    {if (!(-tol_ < a < tol_) && !(C_ - tol_ < a < C_ + tol_)){return true;}return false; };
+    
     vector<int> non_bound_inds = get_conditioned_indeces<double>(alpha, non_bound_check);
 
     while ((num_changed > 0 || examine_all) && (iter_count < max_iter))
@@ -92,17 +94,15 @@ void QPSolver::solve()
             {
 
                 num_changed += examine_example(i, non_bound_inds);
-                non_bound_inds = get_conditioned_indeces<double>(alpha, non_bound_check);
             }
         }
         else
         {
             std::cout << "Examining Non-bound" << std::endl;
 
-            for (auto &i : non_bound_inds)
+            for (int j = 0; j < non_bound_inds.size(); j++)
             {
-                num_changed += examine_example(i, non_bound_inds);
-                non_bound_inds = get_conditioned_indeces<double>(alpha, non_bound_check);
+                num_changed += examine_example(non_bound_inds[j], non_bound_inds);
             }
         }
 
@@ -114,6 +114,7 @@ void QPSolver::solve()
         {
             examine_all = 1;
         }
+
         iter_count++;
         std::cout << "QPSolver on its " << iter_count << " iteration!" << std::endl;
     }
@@ -129,12 +130,17 @@ double QPSolver::get_b()
     return b;
 }
 
-int QPSolver::take_step(int i1, int i2, vector<int>& non_bound_indices)
+int QPSolver::take_step(int i1, int i2, vector<int> &non_bound_indices)
 {
     if (i1 == i2)
     {
         return 0;
     }
+    static double C_ = C;
+    static double tol_ = tol;
+
+    auto non_bound_check = [](double a)
+    {if (!(-tol_ < a < tol_) && !(C_ - tol_ < a < C_ + tol_)){return true;}return false; };
 
     double alpha1 = alpha[i1];
     double alpha2 = alpha[i2];
@@ -173,11 +179,11 @@ int QPSolver::take_step(int i1, int i2, vector<int>& non_bound_indices)
     if (eta > 0)
     {
         a2 = alpha2 + y2 * (E1 - E2) / eta;
-        if (a2 < L)
+        if (a2 <= L)
         {
             a2 = L;
         }
-        else if (a2 > H)
+        else if (a2 >= H)
         {
             a2 = H;
         }
@@ -185,7 +191,7 @@ int QPSolver::take_step(int i1, int i2, vector<int>& non_bound_indices)
     else
     {
         std::cout << "Went for eta <= 0!" << std::endl;
-        
+
         double Lobj = objective_function(L, y1, y2, E1, E2, alpha1, alpha2, k11, k12, k22);
         double Hobj = objective_function(H, y1, y2, E1, E2, alpha1, alpha2, k11, k12, k22);
         if (Lobj < Hobj - tol)
@@ -210,25 +216,34 @@ int QPSolver::take_step(int i1, int i2, vector<int>& non_bound_indices)
     double a1 = alpha1 + s * (alpha2 - a2);
     double b1 = E1 + y1 * (a1 - alpha1) * k11 + y2 * (a2 - alpha2) * k12 + b;
     double b2 = E2 + y1 * (a1 - alpha1) * k12 + y2 * (a2 - alpha2) * k22 + b;
-
-   
-    b = 0.5 * (b1 + b2);
-    
+    if ((a1 > 0) && (a1 < C))
+    {
+        b = b1;
+    }
+    else if ((a2 > 0) && (a2 < C))
+    {
+        b = b2;
+    }
+    else
+    {
+        b = 0.5 * (b1 + b2);
+    }
 
     alpha[i1] = a1;
     alpha[i2] = a2;
+    non_bound_indices = get_conditioned_indeces<double>(alpha, non_bound_check);
 
-    
-    // for (auto &ind : non_bound_indices)
-    // {
-    //     errors[ind] = compute_error(ind);
-    // }
-    errors[i1] = compute_error(i1);
-    errors[i2] = compute_error(i2);
+    for (auto &ind : non_bound_indices)
+    {
+        errors[ind] = compute_error(ind);
+    }
+    // errors[i1] = compute_error(i1);
+    // errors[i2] = compute_error(i2);
+
     return 1;
 }
 
-int QPSolver::examine_example(int i2, vector<int>& non_bound_indices)
+int QPSolver::examine_example(int i2, vector<int> &non_bound_indices)
 {
     double y2 = y_[i2];
     double alpha2 = alpha[i2];
@@ -274,7 +289,7 @@ int QPSolver::examine_example(int i2, vector<int>& non_bound_indices)
     return 0;
 }
 
-int QPSolver::second_choice_heuristic(int i2, vector<int>& non_bound_indices)
+int QPSolver::second_choice_heuristic(int i2, vector<int> &non_bound_indices)
 {
     static double C_ = C;
 
