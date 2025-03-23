@@ -4,7 +4,12 @@ import pybind11
 module = Extension(
     "qpproblem_smo_solver",
     sources=["./module/src/main.cpp"],
-    include_dirs=[pybind11.get_include(), "./module/src/", "./module/src/include/", "./module/src/source/"],
+    include_dirs=[
+        pybind11.get_include(),
+        "./module/src/",
+        "./module/src/include/",
+        "./module/src/source/",
+    ],
     language="c++",
 )
 
