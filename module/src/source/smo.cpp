@@ -111,7 +111,10 @@ void QPSolver::solve()
         }
 
         iter_count++;
-        std::cout << "QPSolver on its " << iter_count << " iteration!" << std::endl;
+        if (logs)
+        {
+            std::cout << "QPSolver on its " << iter_count << " iteration!" << std::endl;
+        }
     }
 }
 
@@ -223,7 +226,7 @@ int QPSolver::take_step(int i1, int i2)
     // {
     //     b = 0.5 * (b2+b1);
     // }
-    b = 0.5 * abs(b2-b1);
+    b = 0.5 * abs(b2 - b1);
 
     alpha[i1] = a1;
     alpha[i2] = a2;
@@ -349,4 +352,13 @@ double QPSolver::output(vector<double> x)
         ans += y_[i] * alpha[i] * kernel_(x, X_[i]);
     }
     return ans - b;
+}
+
+vector<double> QPSolver::output(vector<vector<double>> x)
+{
+    vector<double> ans;
+    for (int i = 0; i < x.size(); i++){
+        ans.push_back(output(x[i]));
+    }
+    return ans;
 }

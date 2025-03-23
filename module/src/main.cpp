@@ -17,14 +17,19 @@ PYBIND11_MODULE(qpproblem_smo_solver, m)
                  std::string,
                  double,
                  double,
-                 int>(),
+                 int,
+                 bool>(),
              py::arg("X"),
              py::arg("y"),
              py::arg("kernel"),
              py::arg("C"),
              py::arg("tol"),
-             py::arg("max_iter"))
+             py::arg("max_iter"),
+             py::arg("logs")=false)
         .def("solve", &QPSolver::solve)
         .def("get_alpha", &QPSolver::get_alpha)
-        .def("get_b", &QPSolver::get_b);
+        .def("get_b", &QPSolver::get_b)
+        .def("output", py::overload_cast<vector<double>>(&QPSolver::output))
+        .def("output", py::overload_cast<vector<vector<double>>>(&QPSolver::output));
+
 }
