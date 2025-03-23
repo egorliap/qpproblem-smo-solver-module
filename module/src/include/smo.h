@@ -44,11 +44,11 @@ private:
     double tol;
     int n_samples;
 
-    int take_step(int i1, int i2, vector<int>& non_bound_indices);
+    int take_step(int i1, int i2);
 
-    int examine_example(int i2, vector<int>& non_bound_indices);
+    int examine_example(int i2);
 
-    int second_choice_heuristic(int i2, vector<int>& non_bound_indices);
+    int second_choice_heuristic(int i2);
 
     double objective_function(double a2, double y1, double y2, double E1, double E2, double alpha1, double alpha2, double k11, double k12, double k22);
 
