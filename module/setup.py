@@ -2,9 +2,9 @@ from setuptools import setup, Extension
 import pybind11
 
 module = Extension(
-    "qpproblem_smo_solver_module",
-    sources=["qpproblem_smo_solver_module/src/main.cpp"],
-    include_dirs=[pybind11.get_include(), "qpproblem_smo_solver_module/src/"],
+    "qpproblem_smo_solver",
+    sources=["./module/src/main.cpp"],
+    include_dirs=[pybind11.get_include(), "./module/src/", "./module/src/include/", "./module/src/source/"],
     language="c++",
 )
 
