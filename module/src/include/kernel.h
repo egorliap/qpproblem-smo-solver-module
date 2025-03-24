@@ -14,7 +14,7 @@ public:
         RBF
     };
 
-    Kernel(const std::string &kernel = "linear", int degree = 2, double gamma = 1.0)
+    Kernel(const std::string &kernel = "linear", int degree = 2, double gamma = 2.0)
         : degree_(degree), gamma_(gamma)
     {
         if (kernel == "linear")

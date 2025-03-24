@@ -1,5 +1,5 @@
 #include <vector>
-#include <cmath>
+#include <math.h>
 #include <stdexcept>
 #include <string>
 #include "kernel.h"
@@ -35,5 +35,5 @@ double Kernel::rbf_kernel(const std::vector<double> &x1, const std::vector<doubl
         double diff = x1[i] - x2[i];
         norm += diff * diff;
     }
-    return exp(gamma_ * sqrt(norm));
+    return exp(-gamma_ * sqrt(norm));
 }
